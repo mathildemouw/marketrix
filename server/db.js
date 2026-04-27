@@ -1,47 +1,43 @@
-const fs = require('fs');
-const path = require('path');
+const { Pool } = require('pg');
 
-const FILE = path.join(__dirname, 'ideas.json');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-function load() {
-  if (!fs.existsSync(FILE)) return { ideas: [], nextId: 1 };
-  return JSON.parse(fs.readFileSync(FILE, 'utf8'));
-}
-
-function save(state) {
-  fs.writeFileSync(FILE, JSON.stringify(state, null, 2));
+async function init() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ideas (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      energy INTEGER NOT NULL,
+      expense INTEGER NOT NULL,
+      impact INTEGER NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
 }
 
 const db = {
-  all() {
-    return load().ideas.slice().reverse();
+  async all() {
+    const { rows } = await pool.query('SELECT * FROM ideas ORDER BY created_at DESC');
+    return rows;
   },
-  insert(idea) {
-    const state = load();
-    const record = { ...idea, id: state.nextId++, created_at: new Date().toISOString() };
-    state.ideas.push(record);
-    save(state);
-    return record;
+  async insert({ title, energy, expense, impact }) {
+    const { rows } = await pool.query(
+      'INSERT INTO ideas (title, energy, expense, impact) VALUES ($1, $2, $3, $4) RETURNING *',
+      [title, energy, expense, impact]
+    );
+    return rows[0];
   },
-  update(id, idea) {
-    const state = load();
-    const idx = state.ideas.findIndex(i => i.id === id);
-    if (idx === -1) return null;
-    state.ideas[idx] = { ...state.ideas[idx], ...idea };
-    save(state);
-    return state.ideas[idx];
+  async update(id, { title, energy, expense, impact }) {
+    const { rows } = await pool.query(
+      'UPDATE ideas SET title=$1, energy=$2, expense=$3, impact=$4 WHERE id=$5 RETURNING *',
+      [title, energy, expense, impact, id]
+    );
+    return rows[0] ?? null;
   },
-  delete(id) {
-    const state = load();
-    const idx = state.ideas.findIndex(i => i.id === id);
-    if (idx === -1) return false;
-    state.ideas.splice(idx, 1);
-    save(state);
-    return true;
-  },
-  get(id) {
-    return load().ideas.find(i => i.id === id) ?? null;
+  async delete(id) {
+    const { rowCount } = await pool.query('DELETE FROM ideas WHERE id=$1', [id]);
+    return rowCount > 0;
   },
 };
 
-module.exports = db;
+module.exports = { db, init };
