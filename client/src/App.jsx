@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import IdeaForm from './components/IdeaForm';
 import IdeaList from './components/IdeaList';
 import IdeaVisualization from './components/IdeaVisualization';
-import { fetchIdeas, createIdea, updateIdea, deleteIdea } from './api';
+import LoginForm from './components/LoginForm';
+import { fetchIdeas, createIdea, updateIdea, deleteIdea, logout, isLoggedIn } from './api';
 import './App.css';
 
 export default function App() {
+  const [authed, setAuthed] = useState(isLoggedIn());
   const [ideas, setIdeas] = useState([]);
   const [editing, setEditing] = useState(null);
   const [highlighted, setHighlighted] = useState(null);
@@ -13,10 +15,18 @@ export default function App() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!authed) return;
     fetchIdeas()
       .then(setIdeas)
-      .catch(() => setError('Could not connect to server. Is it running on port 3001?'));
-  }, []);
+      .catch(e => {
+        if (e.message === 'unauthenticated') { logout(); setAuthed(false); }
+        else setError('Could not connect to server. Is it running on port 3001?');
+      });
+  }, [authed]);
+
+  if (!authed) {
+    return <LoginForm onLogin={() => setAuthed(true)} />;
+  }
 
   async function handleSubmit(form) {
     try {
@@ -42,6 +52,12 @@ export default function App() {
     }
   }
 
+  function handleLogout() {
+    logout();
+    setAuthed(false);
+    setIdeas([]);
+  }
+
   return (
     <div className="app">
       <header className="app-header">
@@ -49,10 +65,13 @@ export default function App() {
           <h1>Marketrix</h1>
           <p className="subtitle">Visualize marketing ideas in 3D space</p>
         </div>
-        <div className="view-tabs">
-          <button className={view === 'split' ? 'active' : ''} onClick={() => setView('split')}>Split</button>
-          <button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')}>List</button>
-          <button className={view === '3d' ? 'active' : ''} onClick={() => setView('3d')}>3D View</button>
+        <div className="header-right">
+          <div className="view-tabs">
+            <button className={view === 'split' ? 'active' : ''} onClick={() => setView('split')}>Split</button>
+            <button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')}>List</button>
+            <button className={view === '3d' ? 'active' : ''} onClick={() => setView('3d')}>3D View</button>
+          </div>
+          <button className="logout-btn" onClick={handleLogout}>Sign out</button>
         </div>
       </header>
 

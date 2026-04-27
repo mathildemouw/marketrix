@@ -3,10 +3,15 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { db, init } = require('./db');
+const { login, requireAuth } = require('./auth');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.post('/api/login', login);
+
+app.use('/api', requireAuth);
 
 app.get('/api/ideas', async (req, res) => {
   try {
