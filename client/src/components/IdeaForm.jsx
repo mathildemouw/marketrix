@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const defaultForm = { title: '', energy: 5, expense: 5, impact: 5 };
+const defaultForm = { title: '', energy: 50, expense: 50, impact: 50 };
 
 export default function IdeaForm({ onSubmit, editing, onCancel }) {
   const [form, setForm] = useState(defaultForm);
@@ -44,7 +44,7 @@ function ScoreInput({ label, name, value, onChange }) {
   return (
     <label className="score-input">
       <span>{label}: <strong>{value}</strong></span>
-      <input type="range" name={name} min={1} max={10} value={value} onChange={onChange} />
+      <input type="range" name={name} min={1} max={100} value={value} onChange={onChange} />
     </label>
   );
 }

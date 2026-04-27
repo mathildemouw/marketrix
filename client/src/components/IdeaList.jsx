@@ -9,7 +9,7 @@ export default function IdeaList({ ideas, onEdit, onDelete, highlighted }) {
         <li key={idea.id} className={`idea-item ${highlighted === idea.id ? 'highlighted' : ''}`}>
           <div className="idea-title">{idea.title}</div>
           <div className="idea-scores">
-            <span title="Energy (Y axis)">⚡ {idea.energy}</span>
+            <span title="Energizing (Y axis)">⚡ {idea.energy}</span>
             <span title="Expense (X axis)">💰 {idea.expense}</span>
             <span title="Impact (Z axis)">🎯 {idea.impact}</span>
           </div>
