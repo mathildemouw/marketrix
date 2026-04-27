@@ -3,11 +3,9 @@ import { OrbitControls, Text, Line } from '@react-three/drei';
 import { useState, useRef } from 'react';
 import * as THREE from 'three';
 
+import { getColor } from '../colors';
+
 const AXIS_LEN = 105;
-const COLORS = [
-  '#4f8ef7', '#f76f4f', '#4ff79e', '#f7d94f', '#c44ff7',
-  '#4ff7f0', '#f74fa8', '#a8f74f', '#f7a84f', '#4f4ff7',
-];
 
 function Axes() {
   const axes = [
@@ -96,7 +94,7 @@ export default function IdeaVisualization({ ideas, onHover }) {
           <IdeaPoint
             key={idea.id}
             idea={idea}
-            color={COLORS[i % COLORS.length]}
+            color={getColor(i)}
             onHover={onHover}
           />
         ))}
