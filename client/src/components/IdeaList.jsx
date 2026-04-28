@@ -1,13 +1,49 @@
+import { useState } from 'react';
 import { getColor } from '../colors';
 
 export default function IdeaList({ ideas, onEdit, onDelete, highlighted }) {
+  const [sortField, setSortField] = useState(null);
+  const [sortDir, setSortDir] = useState('desc');
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  };
+
+  const sorted = sortField
+    ? [...ideas].sort((a, b) => sortDir === 'desc' ? b[sortField] - a[sortField] : a[sortField] - b[sortField])
+    : ideas;
+
   if (ideas.length === 0) {
     return <p className="empty">No ideas yet. Add your first one!</p>;
   }
 
+  const sortLabel = (field, label, icon) => {
+    const active = sortField === field;
+    return (
+      <button
+        className={`sort-btn ${active ? 'active' : ''}`}
+        onClick={() => handleSort(field)}
+      >
+        {icon} {label} {active ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+      </button>
+    );
+  };
+
   return (
-    <ul className="idea-list">
-      {ideas.map((idea, i) => {
+    <div>
+      <div className="sort-controls">
+        <span className="sort-label">Sort by:</span>
+        {sortLabel('expense', 'Expense', '💰')}
+        {sortLabel('impact', 'Impact', '🎯')}
+        {sortLabel('energy', 'Energy', '⚡')}
+      </div>
+      <ul className="idea-list">
+      {sorted.map((idea, i) => {
         const color = getColor(i);
         return (
           <li
@@ -31,6 +67,7 @@ export default function IdeaList({ ideas, onEdit, onDelete, highlighted }) {
           </li>
         );
       })}
-    </ul>
+      </ul>
+    </div>
   );
 }
